@@ -1,6 +1,7 @@
 var path = require('path');
 var webpack = require('webpack');
 var express = require('express');
+var chalk = require('chalk');
 var config = require('./webpack.dev.config');
 const webpackDevMiddleware = require('webpack-dev-middleware');
 const webpackHotMiddleware = require('webpack-hot-middleware');
@@ -32,5 +33,5 @@ app.listen(3000, function(err) {
     return console.error(err);
   }
 
-  console.log('Listening at http://localhost:3000/');
+  console.log(chalk.green('\n🌈  Listening at http://localhost:3000/\n'));
 })
