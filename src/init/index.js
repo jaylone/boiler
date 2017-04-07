@@ -1,44 +1,126 @@
-import htmlparser from 'htmlparser2';
-import chalk from 'chalk';
+import ol from 'openlayers/dist/ol-debug';
+import mapStyle from './mapStyle';
+import 'openlayers/dist/ol.css';
+import './index.css';
 
-let distDom = [];
-const rawHtml = "开头<font size=15 color='#333' style='fontSize: 16px'>前置<del>删除文字<a>链接1</a><a>链接2</a></del><br /><strong>粗体文字</strong>后置</font>结尾";
-const handler = new htmlparser.DomHandler((error, dom) => {
-  if (error) {
-    console.log(chalk.red(error));
-  } else {
-    distDom = dom
-  }
-})
+document.getElementById('root').style.height = window.innerHeight + 'px';
 
-const parser = new htmlparser.Parser(handler, {
-  decodeEntities: false,
-  xmlMode: true
+const map = new ol.Map({ target: 'root' });
+window.list = [];
+
+// 图聚数据 start
+list.push(() => {
+  map.addLayer(new ol.layer.Vector({
+    source: new ol.source.Vector({
+      url: '/frame',
+      format: new ol.format.GeoJSON()
+    }),
+    style: new ol.style.Style({
+      fill: new ol.style.Fill({
+        color: '#e9e9e9'
+      }),
+      stroke: new ol.style.Stroke({
+        color: '#ab893e',
+        width: 3
+      })
+    })
+  }));
+  map.addLayer(new ol.layer.Vector({
+    source: new ol.source.Vector({
+      url: '/area',
+      format: new ol.format.GeoJSON()
+    }),
+    style: new ol.style.Style({
+      fill: new ol.style.Fill({
+        color: '#fff'
+      }),
+      stroke: new ol.style.Stroke({
+        color: '#9e9e9e',
+        width: 0.5
+      })
+    })
+  }));
+  map.setView(new ol.View({
+    center: [13377176.3663, 3534102.6117], // 图聚
+    zoom: 20,
+    // 图聚数据
+    projection: new ol.proj.Projection({
+      projection: 'EPSG:4326',
+      units: 'm'
+    })
+  }));
+  // 图聚地图 end
 });
-parser.write(rawHtml);
-parser.end();
 
-let str = '';
+list.push(() => {
+  // 捷泰数据 start
+  map.addLayer(new ol.layer.Vector({
+    source: new ol.source.Vector({
+      url: '/jtframe',
+      format: new ol.format.GeoJSON()
+    }),
+    style: new ol.style.Style({
+      fill: new ol.style.Fill({
+        color: '#e9e9e9'
+      }),
+      stroke: new ol.style.Stroke({
+        color: '#ab893e',
+        width: 3
+      })
+    })
+  }));
+  map.addLayer(new ol.layer.Vector({
+    source: new ol.source.Vector({
+      url: '/rooms',
+      format: new ol.format.GeoJSON()
+    }),
+    style: new ol.style.Style({
+      fill: new ol.style.Fill({
+        color: '#fff'
+      }),
+      stroke: new ol.style.Stroke({
+        color: '#9e9e9e',
+        width: 0.5
+      })
+    })
+  }));
+  map.setView(new ol.View({
+    center: [104.04677583937718, 30.68613483802708],
+    zoom: 20,
+    projection: 'EPSG:4326',
+  }));
+  // 捷泰数据 end
+});
 
+list.push(() => {
+  // QGIS 导出数据 CRS-'EPSG::27700'
+  map.addLayer(new ol.layer.Vector({
+    source: new ol.source.Vector({
+      url: '/qgis',
+      format: new ol.format.GeoJSON()
+    }),
+    style: new ol.style.Style({
+      fill: new ol.style.Fill({
+        color: '#fff'
+      }),
+      stroke: new ol.style.Stroke({
+        color: '#9e9e9e',
+        width: 0.5
+      })
+    })
+  }));
+  map.setView(new ol.View({
+    center: [1809053.905214813537896, -5520953.589032369665802],
+    zoom: 13,
+    projection: new ol.proj.Projection({
+      code: 'EPSG::27700',
+      units: 'm'
+    }),
+  }));
+  // QGIS 导出数据 end
+});
 
-const parseToText = (node) => {
-
-  const { data, type, attribs, children } = node;
-  const list = [];
-
-  if (type === 'tag') {
-    list.push(children.map(parseToText));
-  } else if (type === 'text') {
-    list.push(data)
-  }
-
-  return list;
-}
-
-console.log(distDom);
-
-console.log(distDom.map(parseToText));
-
-if(module.hot) {
-  module.hot.accept();
+list[0]();
+window.changeMap = () => {
+  list[document.getElementById('slt-map').value]();
 }
